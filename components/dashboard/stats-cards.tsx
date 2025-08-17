@@ -1,9 +1,7 @@
 "use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckSquare, Clock, AlertTriangle, TrendingUp } from "lucide-react"
-
 interface StatsCardsProps {
   stats: {
     totalStats: {
@@ -15,13 +13,11 @@ interface StatsCardsProps {
     overdueCount: number
   }
 }
-
 export function StatsCards({ stats }: StatsCardsProps) {
   const completionRate =
     stats.totalStats.total_tasks > 0
       ? Math.round((stats.totalStats.completed_tasks / stats.totalStats.total_tasks) * 100)
       : 0
-
   const cards = [
     {
       title: "Total Tasks",
@@ -52,7 +48,6 @@ export function StatsCards({ stats }: StatsCardsProps) {
       color: "text-red-600",
     },
   ]
-
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {cards.map((card) => (
@@ -67,7 +62,6 @@ export function StatsCards({ stats }: StatsCardsProps) {
           </CardContent>
         </Card>
       ))}
-
       <Card className="md:col-span-2 lg:col-span-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

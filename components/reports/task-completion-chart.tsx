@@ -1,9 +1,7 @@
 "use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
-
 interface TaskCompletionChartProps {
   data: Array<{
     date: string
@@ -11,7 +9,6 @@ interface TaskCompletionChartProps {
     completed: number
   }>
 }
-
 const chartConfig = {
   created: {
     label: "Created",
@@ -22,13 +19,11 @@ const chartConfig = {
     color: "hsl(var(--chart-2))",
   },
 }
-
 export function TaskCompletionChart({ data }: TaskCompletionChartProps) {
   const formattedData = data.map((item) => ({
     ...item,
     date: new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
   }))
-
   return (
     <Card>
       <CardHeader>

@@ -1,42 +1,33 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyAuth } from "@/lib/api-auth"
 import { sql } from "@/lib/database"
-
-// GET /api/reports - Get comprehensive reporting data
 export async function GET(request: NextRequest) {
   const auth = await verifyAuth(request)
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
-
   const { searchParams } = new URL(request.url)
-  const period = searchParams.get("period") || "30" // days
+  const period = searchParams.get("period") || "30"
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - Number.parseInt(period))
-
   try {
     let whereClause = ""
     const params: any[] = [startDate.toISOString()]
-
-    // Non-admin users can only see their own task reports
     if (auth.user?.role !== "admin") {
       whereClause = "AND (assigned_to = $2 OR created_by = $2)"
       params.push(auth.user?.id)
     }
-
-    // Get task completion trends
     const completionTrends = await sql.query(`
       SELECT 
         DATE(created_at) as date,
         COUNT(*) as total,
         COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed
       FROM tasks
-      WHERE created_at >= NOW() - INTERVAL '30 days'
+      WHERE created_at >= $1
+      ${whereClause}
       GROUP BY DATE(created_at)
       ORDER BY date
-    `)
-
-    // Get user performance metrics
+    `, params)
     const userPerformance = await sql.query(`
       SELECT 
         u.name,
@@ -50,8 +41,6 @@ export async function GET(request: NextRequest) {
       GROUP BY u.id, u.name, u.email
       ORDER BY completed_tasks DESC
     `)
-
-    // Get priority distribution
     const priorityDistribution = await sql.query(`
       SELECT 
         priority,
@@ -61,8 +50,6 @@ export async function GET(request: NextRequest) {
       GROUP BY priority
       ORDER BY count DESC
     `)
-
-    // Get overdue tasks by user
     const overdueByUser = await sql.query(`
       SELECT 
         u.name,
@@ -73,8 +60,6 @@ export async function GET(request: NextRequest) {
       GROUP BY u.id, u.name
       ORDER BY overdue_count DESC
     `)
-
-    // Get monthly summary
     const monthlySummary = await sql.query(`
       SELECT 
         DATE_TRUNC('month', created_at) as month,
@@ -87,8 +72,6 @@ export async function GET(request: NextRequest) {
       GROUP BY DATE_TRUNC('month', created_at)
       ORDER BY month DESC
     `)
-
-    // Transform the data to match frontend expectations
     const statusDistribution = await sql.query(`
       SELECT 
         status,
@@ -99,8 +82,6 @@ export async function GET(request: NextRequest) {
       GROUP BY status
       ORDER BY count DESC
     `, params)
-
-    // Helper function to safely get rows from query results
     const getRows = (result: any): any[] => {
       if (Array.isArray(result)) {
         return result
@@ -110,15 +91,11 @@ export async function GET(request: NextRequest) {
       }
       return []
     }
-
-    // Transform completion trends to match frontend
     const completionTrendsData = getRows(completionTrends).map((row: any) => ({
       date: row.date,
       created: Number(row.total || 0),
       completed: Number(row.completed || 0)
     }))
-
-    // Transform user performance
     const userPerformanceData = getRows(userPerformance).map((row: any) => ({
       name: row.name || '',
       email: row.email || '',
@@ -127,14 +104,10 @@ export async function GET(request: NextRequest) {
       overdue_tasks: Number(getRows(overdueByUser).find((u: any) => u.name === row.name)?.overdue_count || 0),
       completion_rate: Number(row.total_tasks || 0) > 0 ? Math.round((Number(row.completed_tasks || 0) / Number(row.total_tasks || 0)) * 100) : 0
     }))
-
-    // Transform priority distribution
     const priorityDistributionData = getRows(priorityDistribution).map((row: any) => ({
       priority: row.priority || 'unknown',
       count: Number(row.count || 0)
     }))
-
-    // Transform monthly summary
     const monthlySummaryData = getRows(monthlySummary).map((row: any) => ({
       month: row.month || '',
       total_tasks: Number(row.total_tasks || 0),
@@ -142,18 +115,24 @@ export async function GET(request: NextRequest) {
       in_progress_tasks: Number(row.in_progress_tasks || 0),
       pending_tasks: Number(row.pending_tasks || 0)
     }))
-
-    // Transform completion time
-    const avgCompletionTimeData = getRows(userPerformance)
-      .filter((row: any) => row.avg_completion_days)
+    const completionTimeByPriority = await sql.query(`
+      SELECT 
+        priority,
+        AVG(CASE WHEN status = 'completed' THEN EXTRACT(EPOCH FROM (updated_at - created_at))/86400 END) as avg_days
+      FROM tasks
+      WHERE created_at >= $1
+      ${whereClause}
+      AND status = 'completed'
+      GROUP BY priority
+      ORDER BY priority
+    `, params)
+    const avgCompletionTimeData = getRows(completionTimeByPriority)
+      .filter((row: any) => row.avg_days)
       .map((row: any) => ({
-        priority: 'overall',
-        avg_days: Number(row.avg_completion_days || 0)
+        priority: row.priority || 'unknown',
+        avg_days: Math.round(Number(row.avg_days || 0) * 10) / 10
       }))
-
-    // Transform task flow
     const taskFlowData = completionTrendsData
-
     return NextResponse.json({
       completionTrends: completionTrendsData,
       statusDistribution: getRows(statusDistribution).map((row: any) => ({
@@ -169,8 +148,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error fetching reports:", error)
-    
-    // Return empty data structure instead of error
     return NextResponse.json({
       completionTrends: [],
       statusDistribution: [],

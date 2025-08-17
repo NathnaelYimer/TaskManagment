@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyAuth } from "@/lib/api-auth"
 import { sql } from "@/lib/database"
-
-// GET /api/stats - Get task statistics for dashboard
 export async function GET(request: NextRequest) {
   const auth = await verifyAuth(request)
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
-
   try {
     let whereClause = ""
     const params: any[] = []
-
-    // Non-admin users can only see their own task stats
     if (auth.user?.role !== "admin") {
       whereClause = "WHERE (assigned_to = $1 OR created_by = $1)"
       params.push(auth.user?.id)
     }
-
-    // Get task counts by status
     const statusStats = await sql.query(
       `
       SELECT status, COUNT(*) as count
@@ -29,8 +22,6 @@ export async function GET(request: NextRequest) {
     `,
       params,
     )
-
-    // Get task counts by priority
     const priorityStats = await sql.query(
       `
       SELECT priority, COUNT(*) as count
@@ -40,8 +31,6 @@ export async function GET(request: NextRequest) {
     `,
       params,
     )
-
-    // Get overdue tasks count
     const overdueStats = await sql.query(
       `
       SELECT COUNT(*) as count
@@ -51,8 +40,6 @@ export async function GET(request: NextRequest) {
     `,
       params,
     )
-
-    // Get tasks created in the last 7 days
     const recentStats = await sql.query(
       `
       SELECT DATE(created_at) as date, COUNT(*) as count
@@ -64,8 +51,6 @@ export async function GET(request: NextRequest) {
     `,
       params,
     )
-
-    // Get total counts
     const totalStats = await sql.query(
       `
       SELECT 
@@ -78,7 +63,6 @@ export async function GET(request: NextRequest) {
     `,
       params,
     )
-
     return NextResponse.json({
       statusStats,
       priorityStats,

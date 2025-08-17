@@ -1,16 +1,13 @@
 "use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
-
 interface StatusDistributionChartProps {
   data: Array<{
     status: string
     count: number
   }>
 }
-
 const chartConfig = {
   pending: {
     label: "Pending",
@@ -25,16 +22,13 @@ const chartConfig = {
     color: "hsl(var(--chart-2))",
   },
 }
-
 export function StatusDistributionChart({ data }: StatusDistributionChartProps) {
   const formattedData = data.map((item) => ({
     ...item,
     name: item.status.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase()),
     fill: chartConfig[item.status as keyof typeof chartConfig]?.color || "hsl(var(--chart-4))",
   }))
-
   const total = data.reduce((sum, item) => sum + Number.parseInt(item.count.toString()), 0)
-
   return (
     <Card>
       <CardHeader>

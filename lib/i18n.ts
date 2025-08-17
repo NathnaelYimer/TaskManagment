@@ -1,7 +1,5 @@
 export type Language = "en" | "am" | "or"
-
 export interface Translations {
-  // Navigation
   dashboard: string
   tasks: string
   reports: string
@@ -11,8 +9,6 @@ export interface Translations {
   signOut: string
   admin: string
   account: string
-
-  // Common
   loading: string
   save: string
   cancel: string
@@ -29,8 +25,6 @@ export interface Translations {
   back: string
   next: string
   previous: string
-
-  // Authentication
   signIn: string
   email: string
   password: string
@@ -40,8 +34,6 @@ export interface Translations {
   invalidCredentials: string
   loginFailed: string
   demoCredentials: string
-
-  // Tasks
   newTask: string
   createTask: string
   editTask: string
@@ -71,8 +63,6 @@ export interface Translations {
   confirmDelete: string
   taskAssigned: string
   newComment: string
-
-  // User Management
   users: string
   addUser: string
   createUser: string
@@ -88,8 +78,6 @@ export interface Translations {
   userDeleted: string
   cannotDeleteSelf: string
   userAlreadyExists: string
-
-  // Profile
   userProfile: string
   accountInfo: string
   fullName: string
@@ -99,8 +87,6 @@ export interface Translations {
   profileUpdated: string
   updateProfile: string
   updating: string
-
-  // Reports
   reportsAnalytics: string
   reportPeriod: string
   totalTasks: string
@@ -121,29 +107,21 @@ export interface Translations {
   inSelectedPeriod: string
   avgTimeToComplete: string
   usersWithTasks: string
-
-  // Time periods
   last7Days: string
   last30Days: string
   last90Days: string
   lastYear: string
-
-  // Languages
   language: string
   english: string
   amharic: string
   oromo: string
-
-  // App info
   appName: string
   appDescription: string
   welcomeMessage: string
   overviewMessage: string
 }
-
 const translations: Record<Language, Translations> = {
   en: {
-    // Navigation
     dashboard: "Dashboard",
     tasks: "Tasks",
     reports: "Reports",
@@ -153,8 +131,6 @@ const translations: Record<Language, Translations> = {
     signOut: "Sign Out",
     admin: "Admin",
     account: "Account",
-
-    // Common
     loading: "Loading...",
     save: "Save",
     cancel: "Cancel",
@@ -171,8 +147,6 @@ const translations: Record<Language, Translations> = {
     back: "Back",
     next: "Next",
     previous: "Previous",
-
-    // Authentication
     signIn: "Sign In",
     email: "Email",
     password: "Password",
@@ -182,8 +156,6 @@ const translations: Record<Language, Translations> = {
     invalidCredentials: "Invalid credentials",
     loginFailed: "Login failed",
     demoCredentials: "Demo credentials:",
-
-    // Tasks
     newTask: "New Task",
     createTask: "Create Task",
     editTask: "Edit Task",
@@ -214,9 +186,7 @@ const translations: Record<Language, Translations> = {
     taskAssigned: "Task Assigned",
     newComment: "New Comment",
   },
-
   am: {
-    // Navigation
     dashboard: "ዳሽቦርድ",
     tasks: "ተግባራት",
     reports: "ሪፖርቶች",
@@ -226,8 +196,6 @@ const translations: Record<Language, Translations> = {
     signOut: "ውጣ",
     admin: "አስተዳዳሪ",
     account: "መለያ",
-
-    // Common
     loading: "በመጫን ላይ...",
     save: "አስቀምጥ",
     cancel: "ሰርዝ",
@@ -244,8 +212,6 @@ const translations: Record<Language, Translations> = {
     back: "ተመለስ",
     next: "ቀጣይ",
     previous: "ቀዳሚ",
-
-    // Authentication
     signIn: "ግባ",
     email: "ኢሜይል",
     password: "የይለፍ ቃል",
@@ -255,8 +221,6 @@ const translations: Record<Language, Translations> = {
     invalidCredentials: "ትክክል ያልሆነ መረጃ",
     loginFailed: "መግባት አልተሳካም",
     demoCredentials: "የሙከራ መረጃዎች:",
-
-    // Tasks
     newTask: "አዲስ ተግባር",
     createTask: "ተግባር ፍጠር",
     editTask: "ተግባር አርም",
@@ -287,9 +251,7 @@ const translations: Record<Language, Translations> = {
     taskAssigned: "ተግባር ተመድቧል",
     newComment: "አዲስ አስተያየት",
   },
-
   or: {
-    // Navigation
     dashboard: "Gabatee",
     tasks: "Hojiiwwan",
     reports: "Gabaasota",
@@ -299,8 +261,6 @@ const translations: Record<Language, Translations> = {
     signOut: "Ba'i",
     admin: "Bulchaa",
     account: "Herrega",
-
-    // Common
     loading: "Fe'aa jira...",
     save: "Olkaa'i",
     cancel: "Dhiisi",
@@ -317,8 +277,6 @@ const translations: Record<Language, Translations> = {
     back: "Deebi'i",
     next: "Itti aanuu",
     previous: "Dura",
-
-    // Authentication
     signIn: "Seeni",
     email: "Imeelii",
     password: "Jecha icciitii",
@@ -328,8 +286,6 @@ const translations: Record<Language, Translations> = {
     invalidCredentials: "Odeeffannoo sirrii miti",
     loginFailed: "Seenuun hin milkoofne",
     demoCredentials: "Odeeffannoo yaadannoo:",
-
-    // Tasks
     newTask: "Hojii Haaraa",
     createTask: "Hojii Uumi",
     editTask: "Hojii Fooyyessi",
@@ -361,11 +317,9 @@ const translations: Record<Language, Translations> = {
     newComment: "Yaada Haaraa",
   },
 }
-
 export function useTranslation(language: Language): Translations {
   return translations[language] || translations.en
 }
-
 export function getTranslation(language: Language, key: keyof Translations): string {
   return translations[language]?.[key] || translations.en[key] || key
 }

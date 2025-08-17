@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +9,6 @@ import { TaskCard } from "@/components/tasks/task-card"
 import { TaskForm } from "@/components/tasks/task-form"
 import { useAuthStore } from "@/lib/store"
 import type { Task } from "@/lib/types"
-
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
@@ -22,25 +20,20 @@ export default function TasksPage() {
     priority: "all",
     assignedTo: "all",
   })
-
   const { user: currentUser } = useAuthStore()
-
   const fetchTasks = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
-
       if (filters.search) params.append("search", filters.search)
       if (filters.status !== "all") params.append("status", filters.status)
       if (filters.priority !== "all") params.append("priority", filters.priority)
       if (filters.assignedTo !== "all") params.append("assignedTo", filters.assignedTo)
-
       const response = await fetch(`/api/tasks?${params}`, {
         headers: {
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (response.ok) {
         const data = await response.json()
         setTasks(data.tasks)
@@ -51,11 +44,9 @@ export default function TasksPage() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchTasks()
   }, [filters, currentUser?.id])
-
   const handleCreateTask = async (taskData: Partial<Task>) => {
     try {
       const response = await fetch("/api/tasks", {
@@ -66,20 +57,16 @@ export default function TasksPage() {
         },
         body: JSON.stringify(taskData),
       })
-
       if (!response.ok) {
         throw new Error("Failed to create task")
       }
-
       fetchTasks()
     } catch (error) {
       throw error
     }
   }
-
   const handleUpdateTask = async (taskData: Partial<Task>) => {
     if (!selectedTask) return
-
     try {
       const response = await fetch(`/api/tasks/${selectedTask.id}`, {
         method: "PUT",
@@ -89,18 +76,15 @@ export default function TasksPage() {
         },
         body: JSON.stringify(taskData),
       })
-
       if (!response.ok) {
         throw new Error("Failed to update task")
       }
-
       fetchTasks()
       setSelectedTask(null)
     } catch (error) {
       throw error
     }
   }
-
   const handleStatusChange = async (taskId: number, status: Task["status"]) => {
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
@@ -111,20 +95,16 @@ export default function TasksPage() {
         },
         body: JSON.stringify({ status }),
       })
-
       if (!response.ok) {
         throw new Error("Failed to update task status")
       }
-
       fetchTasks()
     } catch (error) {
       console.error("Failed to update task status:", error)
     }
   }
-
   const handleDeleteTask = async (taskId: number) => {
     if (!confirm("Are you sure you want to delete this task?")) return
-
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
@@ -132,27 +112,22 @@ export default function TasksPage() {
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (!response.ok) {
         throw new Error("Failed to delete task")
       }
-
       fetchTasks()
     } catch (error) {
       console.error("Failed to delete task:", error)
     }
   }
-
   const openEditForm = (task: Task) => {
     setSelectedTask(task)
     setIsTaskFormOpen(true)
   }
-
   const openCreateForm = () => {
     setSelectedTask(null)
     setIsTaskFormOpen(true)
   }
-
   return (
     <DashboardLayout
       title="Tasks"
@@ -165,7 +140,7 @@ export default function TasksPage() {
       }
     >
       <div className="space-y-6">
-        {/* Filters */}
+        {}
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <div className="flex-1">
             <div className="relative">
@@ -178,7 +153,6 @@ export default function TasksPage() {
               />
             </div>
           </div>
-
           <div className="flex gap-2">
             <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
               <SelectTrigger className="w-40">
@@ -191,7 +165,6 @@ export default function TasksPage() {
                 <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
             </Select>
-
             <Select value={filters.priority} onValueChange={(value) => setFilters({ ...filters, priority: value })}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="All Priority" />
@@ -205,8 +178,7 @@ export default function TasksPage() {
             </Select>
           </div>
         </div>
-
-        {/* Tasks Grid */}
+        {}
         {loading ? (
           <div className="flex justify-center p-8">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -241,7 +213,6 @@ export default function TasksPage() {
           </div>
         )}
       </div>
-
       <TaskForm
         task={selectedTask}
         open={isTaskFormOpen}

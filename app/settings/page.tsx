@@ -1,5 +1,4 @@
 "use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,16 +10,14 @@ import { LanguageSelector } from "@/components/ui/language-selector"
 import { useUIStore } from "@/lib/store"
 import { useTheme } from "next-themes"
 import { useTranslation } from "@/lib/i18n"
-
 export default function SettingsPage() {
   const { language } = useUIStore()
   const { theme, setTheme } = useTheme()
   const t = useTranslation(language)
-
   return (
     <DashboardLayout title={t.settings} description="Manage your application preferences and settings">
       <div className="space-y-6">
-        {/* Language Settings */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -41,8 +38,7 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Appearance Settings */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -79,8 +75,7 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Notification Settings */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -97,9 +92,7 @@ export default function SettingsPage() {
               </div>
               <Switch defaultChecked />
             </div>
-
             <Separator />
-
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-base">Email Notifications</Label>
@@ -107,9 +100,7 @@ export default function SettingsPage() {
               </div>
               <Switch defaultChecked />
             </div>
-
             <Separator />
-
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-base">Weekly Reports</Label>
@@ -119,8 +110,7 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Privacy Settings */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -137,9 +127,7 @@ export default function SettingsPage() {
               </div>
               <Switch defaultChecked />
             </div>
-
             <Separator />
-
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-base">Activity Status</Label>

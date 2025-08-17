@@ -1,12 +1,10 @@
 "use client"
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Clock, User, MoreHorizontal } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import type { Task } from "@/lib/types"
-
 interface TaskCardProps {
   task: Task & {
     assigned_to_name?: string
@@ -16,7 +14,6 @@ interface TaskCardProps {
   onDelete?: (taskId: number) => void
   onStatusChange?: (taskId: number, status: Task["status"]) => void
 }
-
 export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -30,7 +27,6 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
         return "secondary"
     }
   }
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
@@ -43,9 +39,7 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
         return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
     }
   }
-
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "completed"
-
   return (
     <Card className={`transition-all hover:shadow-md ${isOverdue ? "border-destructive" : ""}`}>
       <CardHeader className="pb-3">
@@ -93,7 +87,6 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
             </Badge>
           )}
         </div>
-
         <div className="space-y-2 text-sm text-muted-foreground">
           {task.due_date && (
             <div className="flex items-center gap-2">
@@ -103,12 +96,10 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
               </span>
             </div>
           )}
-
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span>Created {new Date(task.created_at).toLocaleDateString()}</span>
           </div>
-
           {task.assigned_to_name && (
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />

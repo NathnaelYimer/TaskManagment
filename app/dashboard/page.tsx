@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -10,7 +9,6 @@ import { TaskForm } from "@/components/tasks/task-form"
 import { useAuthStore } from "@/lib/store"
 import { useRealtime } from "@/lib/realtime"
 import type { Task } from "@/lib/types"
-
 interface DashboardStats {
   statusStats: Array<{ status: string; count: string }>
   priorityStats: Array<{ priority: string; count: string }>
@@ -23,41 +21,31 @@ interface DashboardStats {
     pending_tasks: number
   }
 }
-
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentTasks, setRecentTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-
   const { user: currentUser } = useAuthStore()
-
   useRealtime()
-
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
-
-      // Fetch stats
       const statsResponse = await fetch("/api/stats", {
         headers: {
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (statsResponse.ok) {
         const statsData = await statsResponse.json()
         setStats(statsData)
       }
-
-      // Fetch recent tasks
       const tasksResponse = await fetch("/api/tasks?limit=6", {
         headers: {
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (tasksResponse.ok) {
         const tasksData = await tasksResponse.json()
         setRecentTasks(tasksData.tasks)
@@ -68,11 +56,9 @@ export default function DashboardPage() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchDashboardData()
   }, [currentUser?.id])
-
   const handleCreateTask = async (taskData: Partial<Task>) => {
     try {
       const response = await fetch("/api/tasks", {
@@ -83,20 +69,16 @@ export default function DashboardPage() {
         },
         body: JSON.stringify(taskData),
       })
-
       if (!response.ok) {
         throw new Error("Failed to create task")
       }
-
       fetchDashboardData()
     } catch (error) {
       throw error
     }
   }
-
   const handleUpdateTask = async (taskData: Partial<Task>) => {
     if (!selectedTask) return
-
     try {
       const response = await fetch(`/api/tasks/${selectedTask.id}`, {
         method: "PUT",
@@ -106,18 +88,15 @@ export default function DashboardPage() {
         },
         body: JSON.stringify(taskData),
       })
-
       if (!response.ok) {
         throw new Error("Failed to update task")
       }
-
       fetchDashboardData()
       setSelectedTask(null)
     } catch (error) {
       throw error
     }
   }
-
   const handleStatusChange = async (taskId: number, status: Task["status"]) => {
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
@@ -128,20 +107,16 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({ status }),
       })
-
       if (!response.ok) {
         throw new Error("Failed to update task status")
       }
-
       fetchDashboardData()
     } catch (error) {
       console.error("Failed to update task status:", error)
     }
   }
-
   const handleDeleteTask = async (taskId: number) => {
     if (!confirm("Are you sure you want to delete this task?")) return
-
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
@@ -149,27 +124,22 @@ export default function DashboardPage() {
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (!response.ok) {
         throw new Error("Failed to delete task")
       }
-
       fetchDashboardData()
     } catch (error) {
       console.error("Failed to delete task:", error)
     }
   }
-
   const openEditForm = (task: Task) => {
     setSelectedTask(task)
     setIsTaskFormOpen(true)
   }
-
   const openCreateForm = () => {
     setSelectedTask(null)
     setIsTaskFormOpen(true)
   }
-
   if (loading) {
     return (
       <DashboardLayout title="Dashboard" description="Overview of your tasks and progress">
@@ -179,7 +149,6 @@ export default function DashboardPage() {
       </DashboardLayout>
     )
   }
-
   return (
     <DashboardLayout
       title="Dashboard"
@@ -192,10 +161,9 @@ export default function DashboardPage() {
       }
     >
       <div className="space-y-6">
-        {/* Stats Cards */}
+        {}
         {stats && <StatsCards stats={stats} />}
-
-        {/* Recent Tasks */}
+        {}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Recent Tasks</h2>
@@ -203,7 +171,6 @@ export default function DashboardPage() {
               View All
             </Button>
           </div>
-
           {recentTasks.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {recentTasks.map((task) => (
@@ -223,7 +190,6 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
-
       <TaskForm
         task={selectedTask}
         open={isTaskFormOpen}

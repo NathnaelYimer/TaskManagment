@@ -1,16 +1,13 @@
 "use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
-
 interface PriorityDistributionChartProps {
   data: Array<{
     priority: string
     count: number
   }>
 }
-
 const chartConfig = {
   high: {
     label: "High Priority",
@@ -25,14 +22,12 @@ const chartConfig = {
     color: "hsl(var(--chart-2))",
   },
 }
-
 export function PriorityDistributionChart({ data }: PriorityDistributionChartProps) {
   const formattedData = data.map((item) => ({
     ...item,
     name: item.priority.charAt(0).toUpperCase() + item.priority.slice(1),
     fill: chartConfig[item.priority as keyof typeof chartConfig]?.color || "hsl(var(--chart-4))",
   }))
-
   return (
     <Card>
       <CardHeader>

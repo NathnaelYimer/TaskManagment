@@ -1,11 +1,9 @@
 "use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-
 interface UserPerformanceTableProps {
   data: Array<{
     name: string
@@ -16,7 +14,6 @@ interface UserPerformanceTableProps {
     completion_rate: number
   }>
 }
-
 export function UserPerformanceTable({ data }: UserPerformanceTableProps) {
   const getPerformanceBadge = (rate: number) => {
     if (rate >= 80) return <Badge className="bg-green-100 text-green-800">Excellent</Badge>
@@ -24,7 +21,6 @@ export function UserPerformanceTable({ data }: UserPerformanceTableProps) {
     if (rate >= 40) return <Badge className="bg-yellow-100 text-yellow-800">Average</Badge>
     return <Badge className="bg-red-100 text-red-800">Needs Improvement</Badge>
   }
-
   return (
     <Card>
       <CardHeader>

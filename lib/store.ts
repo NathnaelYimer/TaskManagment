@@ -1,7 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { Task, User, UserRole } from "./database"
-
 interface AuthState {
   user: User | null
   userRole: UserRole | null
@@ -9,7 +8,6 @@ interface AuthState {
   login: (user: User, role: UserRole) => void
   logout: () => void
 }
-
 interface TaskState {
   tasks: Task[]
   selectedTask: Task | null
@@ -26,14 +24,12 @@ interface TaskState {
   setSelectedTask: (task: Task | null) => void
   setFilters: (filters: Partial<TaskState["filters"]>) => void
 }
-
 interface UIState {
   language: "en" | "am" | "or"
   sidebarOpen: boolean
   setLanguage: (language: "en" | "am" | "or") => void
   setSidebarOpen: (open: boolean) => void
 }
-
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -48,7 +44,6 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 )
-
 export const useTaskStore = create<TaskState>((set) => ({
   tasks: [],
   selectedTask: null,
@@ -71,7 +66,6 @@ export const useTaskStore = create<TaskState>((set) => ({
   setSelectedTask: (task) => set({ selectedTask: task }),
   setFilters: (filters) => set((state) => ({ filters: { ...state.filters, ...filters } })),
 }))
-
 export const useUIStore = create<UIState>()(
   persist(
     (set) => ({

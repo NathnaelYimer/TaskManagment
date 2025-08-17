@@ -1,7 +1,5 @@
 "use client"
-
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,37 +22,38 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import type { Task } from "@/lib/types"
 import { useAuthStore } from "@/lib/store"
-
 interface User {
   id: string
   email: string
   name?: string
   role: "admin" | "user"
 }
-
 interface TaskFormProps {
-  task?: Task
+  task?: Task | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (taskData: Partial<Task>) => Promise<void>
 }
-
 export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string
+    description: string
+    priority: Task["priority"]
+    status: Task["status"]
+    due_date: Date | undefined
+    assigned_to: string | undefined
+  }>({
     title: "",
     description: "",
-    priority: "medium" as Task["priority"],
-    status: "pending" as Task["status"],
-    due_date: undefined as Date | undefined,
-    assigned_to: "",
+    priority: "medium",
+    status: "pending",
+    due_date: undefined,
+    assigned_to: undefined,
   })
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-
   const { user: currentUser } = useAuthStore()
-
-  // Reset form when task changes
   useEffect(() => {
     if (task) {
       setFormData({
@@ -63,7 +62,7 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
         priority: task.priority,
         status: task.status,
         due_date: task.due_date ? new Date(task.due_date) : undefined,
-        assigned_to: task.assigned_to || "",
+        assigned_to: task.assigned_to,
       })
     } else {
       setFormData({
@@ -72,13 +71,11 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
         priority: "medium",
         status: "pending",
         due_date: undefined,
-        assigned_to: "",
+        assigned_to: undefined,
       })
     }
     setError("")
   }, [task, open])
-
-  // Fetch users for assignment
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -87,7 +84,6 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
             Authorization: `Bearer ${currentUser?.id}`,
           },
         })
-
         if (response.ok) {
           const data = await response.json()
           setUsers(data.users)
@@ -96,33 +92,36 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
         console.error("Failed to fetch users:", err)
       }
     }
-
     if (open) {
       fetchUsers()
     }
   }, [open, currentUser?.id])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
-
     try {
-      const taskData = {
+      const taskData: Partial<Task> = {
         ...formData,
-        due_date: formData.due_date ? formData.due_date.toISOString() : null,
-        assigned_to: formData.assigned_to || null,
+        due_date: formData.due_date ? formData.due_date.toISOString() : undefined,
+        assigned_to: formData.assigned_to || undefined,
       }
-
       await onSubmit(taskData)
+      setFormData({
+        title: "",
+        description: "",
+        priority: "medium",
+        status: "pending",
+        due_date: undefined,
+        assigned_to: undefined,
+      })
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save task")
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setLoading(false)
     }
   }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -132,14 +131,12 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
             {task ? "Update the task details below." : "Fill in the details to create a new task."}
           </DialogDescription>
         </DialogHeader>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="title">Title *</Label>
@@ -151,7 +148,6 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
                 required
               />
             </div>
-
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -162,7 +158,6 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
                 rows={3}
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
               <Select
@@ -179,7 +174,6 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select
@@ -196,7 +190,6 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label>Due Date</Label>
               <Popover>
@@ -222,7 +215,6 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
                 </PopoverContent>
               </Popover>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="assigned_to">Assign To</Label>
               <Select
@@ -243,7 +235,6 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
               </Select>
             </div>
           </div>
-
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

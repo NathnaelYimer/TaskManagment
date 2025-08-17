@@ -1,23 +1,18 @@
 "use client"
-
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Languages } from "lucide-react"
 import { useUIStore } from "@/lib/store"
 import { useTranslation, type Language } from "@/lib/i18n"
-
 const languages: Array<{ code: Language; name: string; nativeName: string }> = [
   { code: "en", name: "English", nativeName: "English" },
   { code: "am", name: "Amharic", nativeName: "አማርኛ" },
   { code: "or", name: "Oromo", nativeName: "Afaan Oromoo" },
 ]
-
 export function LanguageSelector() {
   const { language, setLanguage } = useUIStore()
   const t = useTranslation(language)
-
   const currentLanguage = languages.find((lang) => lang.code === language)
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

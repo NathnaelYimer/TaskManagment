@@ -11,7 +11,6 @@ export interface Task {
   created_at: string
   updated_at: string
 }
-
 export interface TaskComment {
   id: number
   task_id: number
@@ -19,14 +18,12 @@ export interface TaskComment {
   comment: string
   created_at: string
 }
-
 export interface UserRole {
   id: number
   user_id: string
   role: "admin" | "user"
   created_at: string
 }
-
 export interface User {
   id: string
   email: string

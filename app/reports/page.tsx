@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,7 +12,6 @@ import { UserPerformanceTable } from "@/components/reports/user-performance-tabl
 import { CompletionTimeChart } from "@/components/reports/completion-time-chart"
 import { MonthlySummaryChart } from "@/components/reports/monthly-summary-chart"
 import { useAuthStore } from "@/lib/store"
-
 interface ReportData {
   completionTrends: Array<{ date: string; created: number; completed: number }>
   statusDistribution: Array<{ status: string; count: number }>
@@ -37,14 +35,11 @@ interface ReportData {
   }>
   period: number
 }
-
 export default function ReportsPage() {
   const [reportData, setReportData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState("30")
-
   const { user: currentUser, userRole } = useAuthStore()
-
   const fetchReports = async () => {
     try {
       setLoading(true)
@@ -53,7 +48,6 @@ export default function ReportsPage() {
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (response.ok) {
         const data = await response.json()
         setReportData(data)
@@ -64,11 +58,9 @@ export default function ReportsPage() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchReports()
   }, [period, currentUser?.id])
-
   if (loading) {
     return (
       <DashboardLayout title="Reports" description="Analytics and insights for task management">
@@ -78,7 +70,6 @@ export default function ReportsPage() {
       </DashboardLayout>
     )
   }
-
   if (!reportData) {
     return (
       <DashboardLayout title="Reports" description="Analytics and insights for task management">
@@ -91,7 +82,6 @@ export default function ReportsPage() {
       </DashboardLayout>
     )
   }
-
   return (
     <DashboardLayout
       title="Reports & Analytics"
@@ -113,7 +103,7 @@ export default function ReportsPage() {
       }
     >
       <div className="space-y-6">
-        {/* Summary Cards */}
+        {}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -125,7 +115,6 @@ export default function ReportsPage() {
               <p className="text-xs text-gray-600 dark:text-gray-400">Data analysis period</p>
             </CardContent>
           </Card>
-
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Total Tasks</CardTitle>
@@ -138,7 +127,6 @@ export default function ReportsPage() {
               <p className="text-xs text-gray-600 dark:text-gray-400">In selected period</p>
             </CardContent>
           </Card>
-
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Avg Completion</CardTitle>
@@ -159,7 +147,6 @@ export default function ReportsPage() {
               <p className="text-xs text-gray-600 dark:text-gray-400">Average time to complete</p>
             </CardContent>
           </Card>
-
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Active Users</CardTitle>
@@ -171,8 +158,7 @@ export default function ReportsPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Charts Grid */}
+        {}
         <div className="grid gap-6 md:grid-cols-2">
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-lg">
             <TaskCompletionChart data={reportData.taskFlow || []} />
@@ -187,15 +173,13 @@ export default function ReportsPage() {
             <CompletionTimeChart data={reportData.avgCompletionTime || []} />
           </div>
         </div>
-
-        {/* Monthly Summary */}
+        {}
         {reportData.monthlySummary?.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-lg">
             <MonthlySummaryChart data={reportData.monthlySummary || []} />
           </div>
         )}
-
-        {/* User Performance (Admin Only) */}
+        {}
         {userRole?.role === "admin" && reportData.userPerformance?.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-lg">
             <UserPerformanceTable data={reportData.userPerformance || []} />

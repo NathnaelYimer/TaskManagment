@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,7 +19,6 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Trash2, Edit, Plus, Search } from "lucide-react"
 import { useAuthStore } from "@/lib/store"
-
 interface User {
   id: string
   email: string
@@ -29,42 +27,35 @@ interface User {
   created_at: string
   updated_at: string
 }
-
 interface UserManagementTableProps {
   onUserUpdate?: () => void
 }
-
 export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [search, setSearch] = useState("")
-  const [roleFilter, setRoleFilter] = useState("all") // Updated default value
+  const [roleFilter, setRoleFilter] = useState("all")
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [formData, setFormData] = useState({ email: "", name: "", role: "user" })
   const [actionLoading, setActionLoading] = useState(false)
-
   const { user: currentUser } = useAuthStore()
-
   const fetchUsers = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
       if (search) params.append("search", search)
-      if (roleFilter !== "all") params.append("role", roleFilter) // Updated condition
-
+      if (roleFilter !== "all") params.append("role", roleFilter)
       const response = await fetch(`/api/admin/users?${params}`, {
         headers: {
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (!response.ok) {
         throw new Error("Failed to fetch users")
       }
-
       const data = await response.json()
       setUsers(data.users)
     } catch (err) {
@@ -73,11 +64,9 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchUsers()
   }, [search, roleFilter])
-
   const handleCreateUser = async () => {
     try {
       setActionLoading(true)
@@ -89,12 +78,10 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
         },
         body: JSON.stringify(formData),
       })
-
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to create user")
       }
-
       setIsCreateDialogOpen(false)
       setFormData({ email: "", name: "", role: "user" })
       fetchUsers()
@@ -105,10 +92,8 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
       setActionLoading(false)
     }
   }
-
   const handleUpdateUser = async () => {
     if (!selectedUser) return
-
     try {
       setActionLoading(true)
       const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
@@ -122,11 +107,9 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
           role: formData.role,
         }),
       })
-
       if (!response.ok) {
         throw new Error("Failed to update user")
       }
-
       setIsEditDialogOpen(false)
       setSelectedUser(null)
       fetchUsers()
@@ -137,10 +120,8 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
       setActionLoading(false)
     }
   }
-
   const handleDeleteUser = async (userId: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return
-
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
@@ -148,18 +129,15 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (!response.ok) {
         throw new Error("Failed to delete user")
       }
-
       fetchUsers()
       onUserUpdate?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete user")
     }
   }
-
   const openEditDialog = (user: User) => {
     setSelectedUser(user)
     setFormData({
@@ -169,11 +147,9 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
     })
     setIsEditDialogOpen(true)
   }
-
   if (loading) {
     return <div className="flex justify-center p-8">Loading users...</div>
   }
-
   return (
     <Card>
       <CardHeader>
@@ -186,7 +162,6 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
         <div className="flex gap-4 mb-6">
           <div className="flex-1">
             <div className="relative">
@@ -204,7 +179,7 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
               <SelectValue placeholder="Filter by role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All roles</SelectItem> {/* Updated value */}
+              <SelectItem value="all">All roles</SelectItem> {}
               <SelectItem value="admin">Admin</SelectItem>
               <SelectItem value="user">User</SelectItem>
             </SelectContent>
@@ -265,7 +240,6 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
             </DialogContent>
           </Dialog>
         </div>
-
         <Table>
           <TableHeader>
             <TableRow>
@@ -306,7 +280,6 @@ export function UserManagementTable({ onUserUpdate }: UserManagementTableProps) 
             ))}
           </TableBody>
         </Table>
-
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
             <DialogHeader>

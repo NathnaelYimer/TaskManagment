@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { User, Mail, Calendar, Shield } from "lucide-react"
 import { useAuthStore } from "@/lib/store"
-
 interface UserProfile {
   id: string
   email: string
@@ -18,7 +16,6 @@ interface UserProfile {
   created_at: string
   updated_at: string
 }
-
 export function UserProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -26,9 +23,7 @@ export function UserProfile() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [name, setName] = useState("")
-
   const { user: currentUser } = useAuthStore()
-
   const fetchProfile = async () => {
     try {
       setLoading(true)
@@ -37,11 +32,9 @@ export function UserProfile() {
           Authorization: `Bearer ${currentUser?.id}`,
         },
       })
-
       if (!response.ok) {
         throw new Error("Failed to fetch profile")
       }
-
       const data = await response.json()
       setProfile(data.user)
       setName(data.user.name || "")
@@ -51,17 +44,14 @@ export function UserProfile() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchProfile()
   }, [])
-
   const handleUpdateProfile = async () => {
     try {
       setSaving(true)
       setError("")
       setSuccess("")
-
       const response = await fetch("/api/profile", {
         method: "PUT",
         headers: {
@@ -70,16 +60,12 @@ export function UserProfile() {
         },
         body: JSON.stringify({ name }),
       })
-
       if (!response.ok) {
         throw new Error("Failed to update profile")
       }
-
       const data = await response.json()
       setProfile(data.user)
       setSuccess("Profile updated successfully!")
-
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccess(""), 3000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update profile")
@@ -87,15 +73,12 @@ export function UserProfile() {
       setSaving(false)
     }
   }
-
   if (loading) {
     return <div className="flex justify-center p-8">Loading profile...</div>
   }
-
   if (!profile) {
     return <div className="text-center p-8">Profile not found</div>
   }
-
   return (
     <div className="space-y-6">
       <Card>
@@ -112,13 +95,11 @@ export function UserProfile() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
           {success && (
             <Alert className="border-green-200 bg-green-50 text-green-800">
               <AlertDescription>{success}</AlertDescription>
             </Alert>
           )}
-
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div className="space-y-2">
@@ -130,12 +111,10 @@ export function UserProfile() {
                   placeholder="Enter your full name"
                 />
               </div>
-
               <Button onClick={handleUpdateProfile} disabled={saving} className="w-full">
                 {saving ? "Updating..." : "Update Profile"}
               </Button>
             </div>
-
             <div className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
@@ -145,7 +124,6 @@ export function UserProfile() {
                     <p className="text-sm text-muted-foreground">{profile.email}</p>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                   <Shield className="h-4 w-4 text-muted-foreground" />
                   <div>
@@ -153,7 +131,6 @@ export function UserProfile() {
                     <Badge variant={profile.role === "admin" ? "default" : "secondary"}>{profile.role}</Badge>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <div>
@@ -166,7 +143,6 @@ export function UserProfile() {
           </div>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Account Information</CardTitle>

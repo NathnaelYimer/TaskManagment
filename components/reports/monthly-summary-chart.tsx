@@ -1,9 +1,7 @@
 "use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
-
 interface MonthlySummaryChartProps {
   data: Array<{
     month: string
@@ -13,7 +11,6 @@ interface MonthlySummaryChartProps {
     pending_tasks: number
   }>
 }
-
 const chartConfig = {
   total_tasks: {
     label: "Total Tasks",
@@ -32,13 +29,11 @@ const chartConfig = {
     color: "hsl(var(--chart-4))",
   },
 }
-
 export function MonthlySummaryChart({ data }: MonthlySummaryChartProps) {
   const formattedData = data.map((item) => ({
     ...item,
     month: new Date(item.month).toLocaleDateString("en-US", { month: "short", year: "numeric" }),
   }))
-
   return (
     <Card>
       <CardHeader>
