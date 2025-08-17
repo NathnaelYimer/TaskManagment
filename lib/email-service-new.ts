@@ -1,0 +1,138 @@
+import nodemailer from 'nodemailer'
+
+// Configure Gmail SMTP (free tier)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || 'nathnaelyimer@gmail.com',
+    pass: process.env.GMAIL_APP_PASSWORD || 'jgkr inpj xhuu kqor',
+  },
+})
+
+// Email templates
+export interface EmailTemplate {
+  subject: string
+  html: string
+  text: string
+}
+
+export interface TaskReminderEmail {
+  taskTitle: string
+  dueDate: string
+  assigneeName: string
+  taskUrl: string
+}
+
+export interface TaskAssignmentEmail {
+  taskTitle: string
+  assigneeName: string
+  assignedBy: string
+  taskUrl: string
+}
+
+export interface WeeklyReportEmail {
+  userName: string
+  completedTasks: number
+  pendingTasks: number
+  overdueTasks: number
+  weekStart: string
+  weekEnd: string
+}
+
+export class EmailService {
+  async sendTaskReminder(to: string, data: TaskReminderEmail) {
+    const template = this.getTemplate('task-reminder', data)
+    return this.sendEmail(to, template.subject, template.html, template.text)
+  }
+
+  async sendTaskAssignment(to: string, data: TaskAssignmentEmail) {
+    const template = this.getTemplate('task-assignment', data)
+    return this.sendEmail(to, template.subject, template.html, template.text)
+  }
+
+  async sendWeeklyReport(to: string, data: WeeklyReportEmail) {
+    const template = this.getTemplate('weekly-report', data)
+    return this.sendEmail(to, template.subject, template.html, template.text)
+  }
+
+  private getTemplate(name: string, data: any): EmailTemplate {
+    const templates = {
+      'task-reminder': {
+        subject: `Task Reminder: ${data.taskTitle}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Task Reminder</h2>
+            <p>Hello ${data.assigneeName},</p>
+            <p>This is a reminder that your task "<strong>${data.taskTitle}</strong>" is due on <strong>${data.dueDate}</strong>.</p>
+            <p><a href="${data.taskUrl}" style="background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Task</a></p>
+            <p>Best regards,<br>Task Management Team</p>
+          </div>
+        `,
+        text: `Hello ${data.assigneeName}, This is a reminder that your task "${data.taskTitle}" is due on ${data.dueDate}. View it at: ${data.taskUrl}`
+      },
+      'task-assignment': {
+        subject: `New Task Assigned: ${data.taskTitle}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>New Task Assignment</h2>
+            <p>Hello ${data.assigneeName},</p>
+            <p>You have been assigned a new task: "<strong>${data.taskTitle}</strong>" by ${data.assignedBy}.</p>
+            <p><a href="${data.taskUrl}" style="background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Task</a></p>
+            <p>Best regards,<br>Task Management Team</p>
+          </div>
+        `,
+        text: `Hello ${data.assigneeName}, You have been assigned a new task: "${data.taskTitle}" by ${data.assignedBy}. View it at: ${data.taskUrl}`
+      },
+      'weekly-report': {
+        subject: `Weekly Report: ${data.weekStart} - ${data.weekEnd}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Weekly Report</h2>
+            <p>Hello ${data.userName},</p>
+            <p>Here's your weekly summary:</p>
+            <ul>
+              <li><strong>Completed Tasks:</strong> ${data.completedTasks}</li>
+              <li><strong>Pending Tasks:</strong> ${data.pendingTasks}</li>
+              <li><strong>Overdue Tasks:</strong> ${data.overdueTasks}</li>
+            </ul>
+            <p>Week: ${data.weekStart} - ${data.weekEnd}</p>
+            <p>Best regards,<br>Task Management Team</p>
+          </div>
+        `,
+        text: `Hello ${data.userName}, Here's your weekly summary: Completed: ${data.completedTasks}, Pending: ${data.pendingTasks}, Overdue: ${data.overdueTasks}. Week: ${data.weekStart} - ${data.weekEnd}`
+      }
+    }
+
+    return templates[name as keyof typeof templates]
+  }
+
+  private async sendEmail(to: string, subject: string, html: string, text: string) {
+    try {
+      const info = await transporter.sendMail({
+        from: `"Task Management" <${process.env.GMAIL_USER}>`,
+        to,
+        subject,
+        html,
+        text,
+      })
+      
+      console.log('Email sent:', info.messageId)
+      return { success: true, messageId: info.messageId }
+    } catch (error) {
+      console.error('Email send error:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  }
+
+  async verifyConnection() {
+    try {
+      await transporter.verify()
+      return true
+    } catch (error) {
+      console.error('Email connection error:', error)
+      return false
+    }
+  }
+}
+
+export const emailService = new EmailService()

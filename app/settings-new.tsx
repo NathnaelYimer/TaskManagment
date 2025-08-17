@@ -1,0 +1,231 @@
+"use client"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
+import { Languages, Moon, Sun, Bell, Shield, Mail } from "lucide-react"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { LanguageSelector } from "@/components/ui/language-selector"
+import { useUIStore } from "@/lib/store"
+import { useTheme } from "next-themes"
+import { useTranslation } from "@/lib/i18n"
+import { useNotificationStore } from "@/lib/notification-preferences"
+import { Input } from "@/components/ui/input"
+import { useState } from "react"
+import { toast } from "@/components/ui/use-toast"
+
+export default function SettingsPage() {
+  const { language } = useUIStore()
+  const { theme, setTheme } = useTheme()
+  const { preferences, updatePreferences } = useNotificationStore()
+  const t = useTranslation(language)
+  const [email, setEmail] = useState(preferences.emailAddress)
+
+  const handleEmailChange = (newEmail: string) => {
+    setEmail(newEmail)
+    updatePreferences({ emailAddress: newEmail })
+  }
+
+  const handlePreferenceChange = (key: keyof typeof preferences, value: boolean | number) => {
+    updatePreferences({ [key]: value })
+    toast({
+      title: "Settings Updated",
+      description: "Your notification preferences have been saved.",
+    })
+  }
+
+  return (
+    <DashboardLayout title={t.settings} description="Manage your application preferences and settings">
+      <div className="space-y-6">
+        {/* Language Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Languages className="h-5 w-5" />
+              {t.language}
+            </CardTitle>
+            <CardDescription>Choose your preferred language for the application interface</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Interface Language</Label>
+                <div className="text-sm text-muted-foreground">
+                  Select the language for menus, buttons, and messages
+                </div>
+              </div>
+              <LanguageSelector />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Appearance Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sun className="h-5 w-5" />
+              Appearance
+            </CardTitle>
+            <CardDescription>Customize the look and feel of your application</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Theme</Label>
+                <div className="text-sm text-muted-foreground">Choose between light and dark mode</div>
+              </div>
+              <Select value={theme} onValueChange={setTheme}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">
+                    <div className="flex items-center gap-2">
+                      <Sun className="h-4 w-4" />
+                      Light
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="dark">
+                    <div className="flex items-center gap-2">
+                      <Moon className="h-4 w-4" />
+                      Dark
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notification Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notifications
+            </CardTitle>
+            <CardDescription>Configure how you receive notifications</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Email Configuration */}
+            <div className="space-y-4">
+              <div className="space-y-0.5">
+                <Label className="text-base flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email Address
+                </Label>
+                <div className="text-sm text-muted-foreground">
+                  Enter your email address to receive notifications
+                </div>
+              </div>
+              <Input
+                type="email"
+                placeholder="your-email@example.com"
+                value={preferences.emailAddress}
+                onChange={(e) => updatePreferences({ emailAddress: e.target.value })}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Notification Preferences */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Task Reminders</Label>
+                  <div className="text-sm text-muted-foreground">Get notified about upcoming task deadlines</div>
+                </div>
+                <Switch
+                  checked={preferences.taskReminders}
+                  onCheckedChange={(checked) => updatePreferences({ taskReminders: checked })}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Email Notifications</Label>
+                  <div className="text-sm text-muted-foreground">Receive email updates about task assignments</div>
+                </div>
+                <Switch
+                  checked={preferences.emailNotifications}
+                  onCheckedChange={(checked) => updatePreferences({ emailNotifications: checked })}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Weekly Reports</Label>
+                  <div className="text-sm text-muted-foreground">Get weekly summary reports via email</div>
+                </div>
+                <Switch
+                  checked={preferences.weeklyReports}
+                  onCheckedChange={(checked) => updatePreferences({ weeklyReports: checked })}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label className="text-base">Reminder Timing</Label>
+                <div className="text-sm text-muted-foreground">
+                  How many hours before deadline to send reminders
+                </div>
+                <Select
+                  value={preferences.reminderHoursBefore.toString()}
+                  onValueChange={(value) => updatePreferences({ reminderHoursBefore: parseInt(value) })}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 hour</SelectItem>
+                    <SelectItem value="6">6 hours</SelectItem>
+                    <SelectItem value="12">12 hours</SelectItem>
+                    <SelectItem value="24">24 hours</SelectItem>
+                    <SelectItem value="48">48 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Privacy Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Privacy & Security
+            </CardTitle>
+            <CardDescription>Manage your privacy and security preferences</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Profile Visibility</Label>
+                <div className="text-sm text-muted-foreground">Allow other users to see your profile information</div>
+              </div>
+              <Switch defaultChecked />
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Activity Status</Label>
+                <div className="text-sm text-muted-foreground">Show when you're online and active</div>
+              </div>
+              <Switch defaultChecked />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  )
+}

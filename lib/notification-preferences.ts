@@ -1,0 +1,52 @@
+import { create } from "zustand"
+import { persist } from "zustand/middleware"
+
+export interface NotificationPreferences {
+  taskReminders: boolean
+  emailNotifications: boolean
+  weeklyReports: boolean
+  emailAddress: string
+  reminderHoursBefore: number
+}
+
+interface NotificationStore {
+  preferences: NotificationPreferences
+  updatePreferences: (prefs: Partial<NotificationPreferences>) => void
+  resetPreferences: () => void
+}
+
+const defaultPreferences: NotificationPreferences = {
+  taskReminders: true,
+  emailNotifications: true,
+  weeklyReports: false,
+  emailAddress: '',
+  reminderHoursBefore: 24
+}
+
+export const useNotificationStore = create<NotificationStore>()(
+  persist(
+    (set) => ({
+      preferences: defaultPreferences,
+      updatePreferences: (prefs) => set((state) => ({
+        preferences: { ...state.preferences, ...prefs }
+      })),
+      resetPreferences: () => set({ preferences: defaultPreferences })
+    }),
+    {
+      name: "notification-preferences",
+    }
+  )
+)
+
+// Helper function to check if email notifications are enabled
+export function canSendEmailNotification(type: keyof NotificationPreferences): boolean {
+  const { preferences } = useNotificationStore.getState()
+  return preferences.emailNotifications && preferences.emailAddress !== ''
+}
+
+// Helper function to get reminder time
+export function getReminderTime(dueDate: Date, hoursBefore: number): Date {
+  const reminderTime = new Date(dueDate)
+  reminderTime.setHours(reminderTime.getHours() - hoursBefore)
+  return reminderTime
+}

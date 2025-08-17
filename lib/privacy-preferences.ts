@@ -1,0 +1,38 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+export interface PrivacyPreferences {
+  profileVisibility: boolean
+  showActivityStatus: boolean
+  allowEmailLookup: boolean
+  allowUsernameSearch: boolean
+}
+
+export interface PrivacyStore {
+  preferences: PrivacyPreferences
+  updatePreferences: (preferences: Partial<PrivacyPreferences>) => void
+  resetPreferences: () => void
+}
+
+const defaultPreferences: PrivacyPreferences = {
+  profileVisibility: true,
+  showActivityStatus: true,
+  allowEmailLookup: false,
+  allowUsernameSearch: true,
+}
+
+export const usePrivacyStore = create<PrivacyStore>()(
+  persist(
+    (set) => ({
+      preferences: defaultPreferences,
+      updatePreferences: (newPreferences) =>
+        set((state) => ({
+          preferences: { ...state.preferences, ...newPreferences },
+        })),
+      resetPreferences: () => set({ preferences: defaultPreferences }),
+    }),
+    {
+      name: 'privacy-preferences',
+    }
+  )
+)

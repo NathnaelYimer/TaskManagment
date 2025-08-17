@@ -1,0 +1,49 @@
+import { type NextRequest, NextResponse } from "next/server"
+import { createUser, getUserByEmail } from "@/lib/auth"
+
+// POST /api/auth/register - Register new user
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { email, name, password } = body
+
+    // Validate required fields
+    if (!email || !email.includes('@')) {
+      return NextResponse.json({ error: "Valid email is required" }, { status: 400 })
+    }
+
+    if (!password || password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 })
+    }
+
+    if (!name || name.trim().length === 0) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 })
+    }
+
+    // Check if user already exists
+    const existingUser = await getUserByEmail(email)
+    if (existingUser) {
+      return NextResponse.json({ error: "User with this email already exists" }, { status: 409 })
+    }
+
+    // Create new user
+    const user = await createUser(email, name, "user")
+    
+    if (!user) {
+      return NextResponse.json({ error: "Failed to create user" }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      message: "User registered successfully"
+    }, { status: 201 })
+
+  } catch (error) {
+    console.error("Registration error:", error)
+    return NextResponse.json({ error: "Registration failed" }, { status: 500 })
+  }
+}

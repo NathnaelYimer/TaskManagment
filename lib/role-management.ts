@@ -1,0 +1,127 @@
+import { getDatabase } from "./database"
+
+export interface UserWithRole {
+  id: string
+  email: string
+  name?: string
+  role: "admin" | "user"
+  created_at: string
+  updated_at: string
+}
+
+export async function getUserWithRole(userId: string): Promise<UserWithRole | null> {
+  try {
+    const sql = getDatabase()
+    const result = await sql`
+      SELECT u.id, u.email, u.name, u.created_at, u.updated_at,
+             COALESCE(u.raw_json->>'role', 'user') as role
+      FROM users_sync u
+      WHERE u.id = ${userId} AND u.deleted_at IS NULL
+    `
+    
+    const users = Array.isArray(result) ? result : result?.rows || []
+    return users[0] as UserWithRole || null
+  } catch (error) {
+    console.error("Error fetching user with role:", error)
+    return null
+  }
+}
+
+export async function updateUserRole(userId: string, newRole: "admin" | "user"): Promise<boolean> {
+  try {
+    const sql = getDatabase()
+    
+    // Update the role in raw_json
+    await sql`
+      UPDATE users_sync 
+      SET raw_json = jsonb_set(
+        COALESCE(raw_json, '{}'::jsonb),
+        '{role}',
+        ${JSON.stringify(newRole)}::jsonb
+      ),
+      updated_at = NOW()
+      WHERE id = ${userId}
+    `
+    
+    return true
+  } catch (error) {
+    console.error("Error updating user role:", error)
+    return false
+  }
+}
+
+export async function getAllUsersWithRoles(): Promise<UserWithRole[]> {
+  try {
+    const sql = getDatabase()
+    const result = await sql`
+      SELECT u.id, u.email, u.name, u.created_at, u.updated_at,
+             COALESCE(u.raw_json->>'role', 'user') as role
+      FROM users_sync u
+      WHERE u.deleted_at IS NULL
+      ORDER BY u.created_at DESC
+    `
+    
+    const users = Array.isArray(result) ? result : result?.rows || []
+    return users as UserWithRole[]
+  } catch (error) {
+    console.error("Error fetching all users with roles:", error)
+    return []
+  }
+}
+
+export async function getUsersByRole(role: "admin" | "user"): Promise<UserWithRole[]> {
+  try {
+    const sql = getDatabase()
+    const result = await sql`
+      SELECT u.id, u.email, u.name, u.created_at, u.updated_at,
+             COALESCE(u.raw_json->>'role', 'user') as role
+      FROM users_sync u
+      WHERE u.deleted_at IS NULL 
+        AND COALESCE(u.raw_json->>'role', 'user') = ${role}
+      ORDER BY u.created_at DESC
+    `
+    
+    const users = Array.isArray(result) ? result : result?.rows || []
+    return users as UserWithRole[]
+  } catch (error) {
+    console.error("Error fetching users by role:", error)
+    return []
+  }
+}
+
+export function isAdmin(userRole: string): boolean {
+  return userRole === "admin"
+}
+
+export function isUser(userRole: string): boolean {
+  return userRole === "user"
+}
+
+export async function canUserAccessAdminPanel(userId: string): Promise<boolean> {
+  const user = await getUserWithRole(userId)
+  return user ? isAdmin(user.role) : false
+}
+
+export async function getRoleCounts(): Promise<{ admin: number; user: number }> {
+  try {
+    const sql = getDatabase()
+    
+    const result = await sql`
+      SELECT 
+        COUNT(CASE WHEN COALESCE(raw_json->>'role', 'user') = 'admin' THEN 1 END) as admin_count,
+        COUNT(CASE WHEN COALESCE(raw_json->>'role', 'user') = 'user' THEN 1 END) as user_count
+      FROM users_sync
+      WHERE deleted_at IS NULL
+    `
+    
+    const counts = Array.isArray(result) ? result[0] : result?.rows?.[0] || { admin_count: 0, user_count: 0 }
+    
+    return {
+      admin: Number((counts as any).admin_count) || 0,
+      user: Number((counts as any).user_count) || 0
+    }
+  } catch (error) {
+    console.error("Error getting role counts:", error)
+    return { admin: 0, user: 0 }
+  }
+}

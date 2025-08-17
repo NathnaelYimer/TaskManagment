@@ -1,0 +1,132 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getDatabase } from '@/lib/database'
+import { cookies } from 'next/headers'
+
+interface User {
+  id: string
+  email: string
+  name: string
+}
+
+interface PrivacySettings {
+  show_activity_status: boolean
+}
+
+interface UserStatus {
+  is_online: boolean
+  last_seen_at: string | null
+}
+
+// Helper function to get user from session
+async function getUserFromSession(): Promise<User | null> {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('auth-session')
+  
+  if (!sessionCookie) {
+    return null
+  }
+
+  try {
+    const userId = sessionCookie.value
+    const sql = getDatabase()
+    
+    const result = await sql`
+      SELECT id, email, name 
+      FROM users_sync 
+      WHERE id = ${userId} AND deleted_at IS NULL
+    `
+    
+    // Properly type the result as an array
+    const users = Array.isArray(result) ? result as User[] : []
+    return users[0] || null
+  } catch (error) {
+    console.error('Error getting user from session:', error)
+    return null
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
+    }
+
+    const sql = getDatabase()
+    
+    try {
+      // Check if user allows their activity status to be shown
+      const privacySettings = await sql`
+        SELECT show_activity_status
+        FROM user_privacy_settings
+        WHERE user_id = ${userId}
+      `
+
+      // Ensure privacySettings is treated as an array and properly typed
+      const privacyArray = Array.isArray(privacySettings) ? privacySettings as PrivacySettings[] : []
+      const showActivityStatus = privacyArray.length > 0 ? privacyArray[0].show_activity_status : true
+      
+      if (!showActivityStatus) {
+        return NextResponse.json({ online: false, lastSeen: null })
+      }
+
+      // Get user's online status
+      const status = await sql`
+        SELECT is_online, last_seen_at
+        FROM user_status
+        WHERE user_id = ${userId}
+      `
+
+      // Ensure status is treated as an array
+      const statusArray = Array.isArray(status) ? status : []
+      if (statusArray.length === 0) {
+        return NextResponse.json({ online: false, lastSeen: null })
+      }
+
+      const userStatus = statusArray[0] as UserStatus
+      return NextResponse.json({
+        online: userStatus.is_online,
+        lastSeen: userStatus.last_seen_at,
+      })
+    } catch (error) {
+      // Table might not exist yet
+      return NextResponse.json({ online: false, lastSeen: null })
+    }
+  } catch (error) {
+    console.error('Error fetching user status:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getUserFromSession()
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { isOnline } = body
+
+    const sql = getDatabase()
+    
+    await sql`
+      INSERT INTO user_status (user_id, is_online, last_seen_at)
+      VALUES (${user.id}, ${isOnline}, CURRENT_TIMESTAMP)
+      ON CONFLICT (user_id) DO UPDATE SET
+        is_online = EXCLUDED.is_online,
+        last_seen_at = CASE 
+          WHEN EXCLUDED.is_online = false THEN CURRENT_TIMESTAMP
+          ELSE user_status.last_seen_at
+        END
+    `
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error updating user status:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
