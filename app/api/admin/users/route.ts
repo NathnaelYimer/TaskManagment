@@ -27,18 +27,16 @@ export async function GET(request: NextRequest) {
     const params: any[] = []
     let paramIndex = 1
     if (search) {
-      query += ` AND (u.email ILIKE $${paramIndex} OR u.name ILIKE $${paramIndex})`
-      params.push(`%${search}%`)
+      query += ` AND (u.email ILIKE '%${search}%' OR u.name ILIKE '%${search}%')`
       paramIndex++
     }
     if (role) {
-      query += ` AND ur.role = $${paramIndex}`
-      params.push(role)
+      query += ` AND ur.role = '${role}'`
       paramIndex++
     }
     query += ` ORDER BY u.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
     params.push(limit, offset)
-    const users = await sql(query, params)
+    const users = await sql.unsafe(query)
     let countQuery = `
       SELECT COUNT(*) FROM users_sync u
       LEFT JOIN user_roles ur ON u.id = ur.user_id
@@ -47,16 +45,14 @@ export async function GET(request: NextRequest) {
     const countParams: any[] = []
     let countParamIndex = 1
     if (search) {
-      countQuery += ` AND (u.email ILIKE $${countParamIndex} OR u.name ILIKE $${countParamIndex})`
-      countParams.push(`%${search}%`)
+      countQuery += ` AND (u.email ILIKE '%${search}%' OR u.name ILIKE '%${search}%')`
       countParamIndex++
     }
     if (role) {
-      countQuery += ` AND ur.role = $${countParamIndex}`
-      countParams.push(role)
+      countQuery += ` AND ur.role = '${role}'`
     }
-    const countResult = await sql(countQuery, countParams)
-    const total = Number.parseInt(countResult[0].count)
+    const countResult = await sql.unsafe(countQuery) as unknown as { count: string }[]
+    const total = Number.parseInt(countResult[0]?.count || '0')
     return NextResponse.json({
       users,
       pagination: {
@@ -86,31 +82,29 @@ export async function POST(request: NextRequest) {
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
     }
-    const existingUser = await sql.query(
-      `SELECT id FROM users_sync WHERE email = $1 AND deleted_at IS NULL`,
-      [email]
-    )
-    if ((existingUser as any[]).length > 0) {
+    const existingUser = await sql.unsafe(
+      `SELECT id FROM users_sync WHERE email = '${email}' AND deleted_at IS NULL`
+    ) as unknown as { id: string }[]
+    if (existingUser.length > 0) {
       return NextResponse.json({ error: "User with this email already exists" }, { status: 400 })
     }
-    const newUser = await sql.query(
-      `INSERT INTO users_sync (id, email, name, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *`,
-      [userId, email, name]
+    const newUser = await sql.unsafe(
+      `INSERT INTO users_sync (email, name, created_at, updated_at) VALUES ('${email}', '${name}', NOW(), NOW()) RETURNING *`
+    ) as unknown as Array<{id: string; email: string; name: string | null; created_at: Date; updated_at: Date}>
+    
+    const userData = newUser[0];
+    
+    await sql.unsafe(
+      `INSERT INTO user_roles (user_id, role) VALUES ('${userData.id}', '${role || 'user'}'`
     )
-    const userData = (newUser as any[])[0]
-    await sql`
-      INSERT INTO user_roles (user_id, role)
-      VALUES (${email}, ${role || "user"})
-    `
-    const newUser = users[0]
     return NextResponse.json(
       {
         user: {
-          ...newUser,
-          role: role || "user",
+          ...userData,
+          role: role || 'user',
         },
       },
-      { status: 201 },
+      { status: 201 }
     )
   } catch (error) {
     console.error("Error creating user:", error)
